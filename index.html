@@ -1,0 +1,144 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShortLink | Сокращение ссылок</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔗</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1><span class="logo-icon">🔗</span> ShortLink</h1>
+                <p class="tagline">Сделайте ваши ссылки короче и удобнее</p>
+            </div>
+        </header>
+
+        <main>
+            <section class="hero">
+                <div class="hero-content">
+                    <h2>Сократите любую ссылку за секунды</h2>
+                    <p>Бесплатный сервис для создания коротких и запоминающихся URL</p>
+                    
+                    <div class="url-form">
+                        <div class="input-group">
+                            <input type="url" id="longUrl" placeholder="Вставьте длинную ссылку здесь..." required>
+                            <button id="shortenBtn" class="btn-primary">
+                                <span class="btn-text">Сократить</span>
+                                <span class="btn-loader" style="display: none;">⏳</span>
+                            </button>
+                        </div>
+                        
+                        <div class="result-card" id="resultCard" style="display: none;">
+                            <div class="result-header">
+                                <h3>✅ Ваша ссылка готова!</h3>
+                                <button id="copyBtn" class="btn-secondary">Копировать</button>
+                            </div>
+                            <div class="result-body">
+                                <div class="original-url">
+                                    <strong>Исходная:</strong>
+                                    <span id="originalUrl"></span>
+                                </div>
+                                <div class="short-url">
+                                    <strong>Короткая:</strong>
+                                    <a href="#" id="shortUrl" target="_blank"></a>
+                                </div>
+                            </div>
+                            <div class="result-footer">
+                                <small>Ссылка будет работать всегда</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-number" id="totalLinks">0</span>
+                            <span class="stat-label">сокращено ссылок</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="totalClicks">0</span>
+                            <span class="stat-label">переходов всего</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="instructions">
+                <h2>Как это работает</h2>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-icon">1</div>
+                        <h3>Вставьте ссылку</h3>
+                        <p>Скопируйте длинный URL из адресной строки браузера</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-icon">2</div>
+                        <h3>Сократите</h3>
+                        <p>Нажмите кнопку "Сократить" для создания короткой версии</p>
+
+
+</div>
+                    <div class="step">
+                        <div class="step-icon">3</div>
+                        <h3>Используйте</h3>
+                        <p>Копируйте и делитесь короткой ссылкой где угодно</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="features">
+                <h2>Почему ShortLink?</h2>
+                <div class="feature-grid">
+                    <div class="feature">
+                        <div class="feature-icon">⚡</div>
+                        <h3>Мгновенно</h3>
+                        <p>Сокращение происходит моментально без регистрации</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🎯</div>
+                        <h3>Просто</h3>
+                        <p>Интуитивно понятный интерфейс без лишних функций</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">📱</div>
+                        <h3>Адаптивно</h3>
+                        <p>Работает на всех устройствах и в любом браузере</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🔄</div>
+                        <h3>Надежно</h3>
+                        <p>Все ссылки сохраняются и работают постоянно</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>ShortLink</h3>
+                    <p>Бесплатный сервис для сокращения длинных URL</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Контакты</h3>
+                    <p>По вопросам работы сервиса: support@shortlink.ru</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Технологии</h3>
+                    <p>HTML5, CSS3, JavaScript, JSON Server</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 ShortLink.</p>
+            </div>
+        </footer>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
