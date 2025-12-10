@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Страница не найдена | ShortLink</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style-404.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔗</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1><span class="logo-icon">🔗</span> ShortLink</h1>
+            </div>
+        </header>
+
+        <div class="error-container">
+            <div class="error-content">
+                <div class="error-code">
+                    <span class="error-digit">4</span>
+                    <span class="error-digit">0</span>
+                    <span class="error-digit">4</span>
+                </div>
+                
+                <h1 class="error-title">Страница не найдена</h1>
+                
+                <div class="error-description">
+                    <p>Запрашиваемая вами страница не существует или была перемещена.</p>
+                    <p>Возможно, короткая ссылка устарела или была удалена.</p>
+                </div>
+                
+                <div class="search-suggestion">
+                    <p>Попробуйте найти нужную страницу:</p>
+                    <div class="search-box">
+                        <input type="text" placeholder="Введите ключевые слова..." id="searchInput">
+                        <button onclick="performSearch()">Поиск</button>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <a href="index.html" class="btn-primary">
+                        <span class="btn-icon">🏠</span>
+                        На главную страницу
+                    </a>
+                    <a href="javascript:history.back()" class="btn-secondary">
+                        <span class="btn-icon">↩️</span>
+                        Вернуться назад
+                    </a>
+                </div>
+                
+                <div class="additional-links">
+                    <p>Или попробуйте:</p>
+                    <ul>
+                        <li><a href="index.html#url-form">Сократить новую ссылку</a></li>
+                        <li><a href="index.html#instructions">Прочитать инструкцию</a></li>
+                        <li><a href="index.html#features">Посмотреть возможности</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="error-stats">
+                <h3>Статистика сервиса</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalLinks">0</span>
+                        <span class="stat-label">сокращено ссылок</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalClicks">0</span>
+                        <span class="stat-label">переходов всего</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="activeLinks">0</span>
+                        <span class="stat-label">активных ссылок</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>ShortLink</h3>
+                    <p>Бесплатный сервис для сокращения длинных URL</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Контакты</h3>
+<p>По вопросам работы сервиса: support@shortlink.ru</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Навигация</h3>
+                    <p><a href="index.html">Главная</a> • <a href="redirect.html">Редирект</a></p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 ShortLink. Все права защищены.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script-404.js"></script>
+</body>
+</html>
