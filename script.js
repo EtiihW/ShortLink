@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const totalLinks = saveLink(originalUrl, shortCode);
             
             // Формируем короткую ссылку
-            const shortUrl = `${window.location.origin}/redirect.html?code=${shortCode}`;
+            const shortUrl = `${window.location.origin}/${shortCode}`;
             
             // Показываем результат
             originalUrlSpan.textContent = originalUrl;
