@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error('Ошибка:', error);
-            showNotification(Ошибка: ${error.message}, 'error');
+            showNotification(`Ошибка: ${error.message}`, 'error');
         } finally {
             // Восстанавливаем кнопку
             btnText.style.display = 'inline-block';
@@ -173,3 +173,4 @@ document.addEventListener('DOMContentLoaded', function() {
     // Пример ссылки для тестирования
     longUrlInput.value = 'https://example.com/очень-длинная-ссылка-для-примера';
 });
+
