@@ -1,34 +1,44 @@
 // api/stats.js
 import { createClient } from '@supabase/supabase-js';
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
-  try {
-    // Получаем общее количество ссылок
-    const { count: totalLinks, error: countError } = await supabase
-      .from('short_links')
-      .select('*', { count: 'exact', head: true });
+    try {
+        // 1. Получаем общее количество ссылок в БД
+        const { count: totalLinks, error: countError } = await supabase
+            .from('short_links')
+            .select('*', { count: 'exact', head: true });
 
-    // Получаем общее количество кликов (сумма по всем строкам)
-    const { data: links, error: sumError } = await supabase
-      .from('short_links')
-      .select('click_count');
+        // 2. Получаем все записи, чтобы просуммировать клики
+        const { data: allLinks, error: linksError } = await supabase
+            .from('short_links')
+            .select('click_count');
 
-    let totalClicks = 0;
-    if (links) {
-      totalClicks = links.reduce((sum, link) => sum + (link.click_count || 0), 0);
+        let totalClicks = 0;
+        if (allLinks && !linksError) {
+            totalClicks = allLinks.reduce((sum, link) => sum + (link.click_count || 0), 0);
+        }
+
+        if (countError || linksError) {
+            console.error('Ошибки при получении статистики:', { countError, linksError });
+            // Возвращаем нули, но не падаем
+        }
+
+        // 3. Возвращаем статистику
+        res.status(200).json({
+            totalLinks: totalLinks || 0,
+            totalClicks: totalClicks
+        });
+
+    } catch (error) {
+        console.error('Критическая ошибка в api/stats:', error);
+        res.status(500).json({
+            totalLinks: 0,
+            totalClicks: 0,
+            error: 'Не удалось загрузить статистику'
+        });
     }
-
-    if (countError || sumError) {
-      throw new Error('Ошибка получения статистики');
-    }
-
-    res.status(200).json({
-      totalLinks: totalLinks || 0,
-      totalClicks: totalClicks
-    });
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
 }
