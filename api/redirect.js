@@ -6,36 +6,36 @@ const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
-  const { shortCode } = req.query;
+    const { shortCode } = req.query;
 
-  try {
-    // 1. Находим ссылку
-    const { data: link, error: findError } = await supabase
-      .from('short_links')
-      .select('original_url, click_count')
-      .eq('short_code', shortCode)
-      .single();
+    try {
+        // 1. Находим ссылку по короткому коду
+        const { data: link, error: findError } = await supabase
+            .from('short_links')
+            .select('original_url, click_count')
+            .eq('short_code', shortCode)
+            .single();
 
-    if (findError || !link) {
-      return res.status(404).json({ error: 'Ссылка не найдена' });
+        if (findError || !link) {
+            return res.status(404).json({ error: 'Ссылка не найдена' });
+        }
+
+        // 2. АТОМАРНО увеличиваем счётчик переходов
+        const { error: updateError } = await supabase
+            .from('short_links')
+            .update({ click_count: (link.click_count || 0) + 1 })
+            .eq('short_code', shortCode);
+
+        if (updateError) {
+            console.error('Не удалось обновить счётчик кликов:', updateError);
+            // Не прерываем редирект, просто логируем
+        }
+
+        // 3. Выполняем редирект
+        res.redirect(301, link.original_url);
+
+    } catch (error) {
+        console.error('Ошибка в api/redirect:', error);
+        res.status(500).json({ error: 'Внутренняя ошибка сервера' });
     }
-
-    // 2. УВЕЛИЧИВАЕМ СЧЁТЧИК ПЕРЕХОДОВ
-    const { error: updateError } = await supabase
-      .from('short_links')
-      .update({ click_count: (link.click_count || 0) + 1 })
-      .eq('short_code', shortCode);
-
-    if (updateError) {
-      console.error('Ошибка обновления счётчика:', updateError);
-      // НЕ прерываем редирект, просто логируем ошибку
-    }
-
-    // 3. Делаем редирект
-    res.redirect(301, link.original_url);
-
-  } catch (error) {
-    console.error('Ошибка в redirect:', error);
-    res.status(500).json({ error: 'Внутренняя ошибка сервера' });
-  }
 }
