@@ -1,24 +1,23 @@
-// Файл: api/redirect.js
-export default function handler(req, res) {
-  // 1. Получаем короткий код из запроса
-  //    Если пользователь зашел на your-site.vercel.app/abc123,
-  //    то req.query.shortCode будет равно "abc123"
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+export default async function handler(req, res) {
   const { shortCode } = req.query;
 
-  // 2. Простая "база данных" в памяти (ДЛЯ ТЕСТА!)
-  //    В реальном проекте здесь нужно подключиться к настоящей БД
-  const linkDatabase = {
-    'test': 'https://example.com',
-    'google': 'https://google.com'
-  };
+  // Ищем оригинальный URL в базе данных по short_code [citation:3]
+  const { data, error } = await supabase
+    .from('short_links')
+    .select('original_url')
+    .eq('short_code', shortCode)
+    .single(); // Ожидаем одну запись
 
-  // 3. Ищем оригинальную ссылку по коду
-  const originalUrl = linkDatabase[shortCode];
-
-  // 4. Если нашли — делаем редирект, если нет — показываем 404
-  if (originalUrl) {
-    res.redirect(308, originalUrl); // 308 — permanent redirect
-  } else {
-    res.status(404).send('Ссылка не найдена');
+  if (error || !data) {
+    return res.status(404).json({ error: 'Ссылка не найдена' });
   }
+
+  // Делаем редирект на найденный URL
+  res.redirect(301, data.original_url);
 }
