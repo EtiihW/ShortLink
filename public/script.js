@@ -1,8 +1,9 @@
-// База данных ссылок в localStorage
-const DB_KEY = 'shortlinks_db';
+// public/script.js
+
+// База данных в localStorage (теперь используется только для статистики на главной, не для хранения ссылок)
+const DB_KEY = 'shortlinks_stats';
 const STATS_KEY = 'shortlinks_stats';
 
-// Инициализация базы данных
 function initDatabase() {
     if (!localStorage.getItem(DB_KEY)) {
         localStorage.setItem(DB_KEY, JSON.stringify({}));
@@ -15,7 +16,6 @@ function initDatabase() {
     }
 }
 
-// Генерация короткого кода
 function generateShortCode(length = 6) {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code = '';
@@ -25,10 +25,8 @@ function generateShortCode(length = 6) {
     return code;
 }
 
-// Проверка валидности URL
 function isValidUrl(url) {
     try {
-        // Добавляем протокол если его нет
         if (!url.startsWith('http://') && !url.startsWith('https://')) {
             url = 'https://' + url;
         }
@@ -39,68 +37,23 @@ function isValidUrl(url) {
     }
 }
 
-// Сохранение ссылки в базу данных
-function saveLink(originalUrl, shortCode) {
-    const db = JSON.parse(localStorage.getItem(DB_KEY));
-    const stats = JSON.parse(localStorage.getItem(STATS_KEY));
-    
-    db[shortCode] = {
-        originalUrl,
-        createdAt: new Date().toISOString(),
-        clicks: 0
-    };
-    
-    stats.totalLinks += 1;
-    
-    localStorage.setItem(DB_KEY, JSON.stringify(db));
-    localStorage.setItem(STATS_KEY, JSON.stringify(stats));
-    
-    return stats.totalLinks;
-}
-
-// Получение оригинальной ссылки
-function getOriginalUrl(shortCode) {
-    const db = JSON.parse(localStorage.getItem(DB_KEY));
-    return db[shortCode];
-}
-
-// Увеличение счетчика кликов
-function incrementClick(shortCode) {
-    const db = JSON.parse(localStorage.getItem(DB_KEY));
-    const stats = JSON.parse(localStorage.getItem(STATS_KEY));
-    
-    if (db[shortCode]) {
-        db[shortCode].clicks += 1;
-        stats.totalClicks += 1;
-        
-        localStorage.setItem(DB_KEY, JSON.stringify(db));
-        localStorage.setItem(STATS_KEY, JSON.stringify(stats));
-        
-        return stats.totalClicks;
-    }
-    return null;
-}
-
-// Показ уведомления
-function showNotification(message, type = 'success') {
-    const notification = document.getElementById('notification');
-    notification.textContent = message;
-    notification.style.background = type === 'success' ? '#48bb78' : '#f56565';
-    notification.style.display = 'block';
-    
-    setTimeout(() => {
-        notification.style.display = 'none';
-    }, 3000);
-}
-
-// Обновление статистики на странице
 function updateStats() {
     const stats = JSON.parse(localStorage.getItem(STATS_KEY));
     document.getElementById('totalLinks').textContent = stats.totalLinks;
     document.getElementById('totalClicks').textContent = stats.totalClicks;
 }
 
-// Основная функция
+function showNotification(message, type = 'success') {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.style.background = type === 'success' ? '#48bb78' : '#f56565';
+    notification.style.display = 'block';
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 3000);
+}
+
+// ===== ОСНОВНАЯ ЛОГИКА ПРИЛОЖЕНИЯ =====
 document.addEventListener('DOMContentLoaded', function() {
     initDatabase();
     updateStats();
@@ -121,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!url) {
             showNotification('Пожалуйста, введите ссылку', 'error');
             return;
-}
+        }
         
         const validation = isValidUrl(url);
         if (!validation.isValid) {
@@ -134,36 +87,52 @@ document.addEventListener('DOMContentLoaded', function() {
         btnLoader.style.display = 'inline-block';
         shortenBtn.disabled = true;
         
-        // Имитация задержки сети
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
         try {
             const originalUrl = validation.url;
             const shortCode = generateShortCode();
             
-            // Сохраняем в базу данных
-            const totalLinks = saveLink(originalUrl, shortCode);
+            // ---- ОТПРАВКА ДАННЫХ НА СЕРВЕР ДЛЯ СОХРАНЕНИЯ В БД ----
+            const response = await fetch('/api/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    shortCode: shortCode,
+                    originalUrl: originalUrl
+                })
+            });
             
-            // Формируем короткую ссылку
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.error || 'Не удалось сохранить ссылку');
+            }
+            // ---- КОНЕЦ ОТПРАВКИ ДАННЫХ ----
+            
+            // Если сохранение успешно, показываем результат
             const shortUrl = `${window.location.origin}/${shortCode}`;
             
-            // Показываем результат
+            // Обновляем интерфейс
             originalUrlSpan.textContent = originalUrl;
             shortUrlLink.textContent = shortUrl;
             shortUrlLink.href = shortUrl;
             resultCard.style.display = 'block';
             
-            // Обновляем статистику
+            // Обновляем локальную статистику (только для отображения на главной)
+            const stats = JSON.parse(localStorage.getItem(STATS_KEY));
+            stats.totalLinks += 1;
+            localStorage.setItem(STATS_KEY, JSON.stringify(stats));
             updateStats();
             
             // Скроллим к результату
             resultCard.scrollIntoView({ behavior: 'smooth' });
             
-            showNotification('Ссылка успешно сокращена!');
+            showNotification('Ссылка успешно сокращена и сохранена!');
             
         } catch (error) {
-            showNotification('Ошибка при создании короткой ссылки', 'error');
-            console.error('Error:', error);
+            console.error('Ошибка:', error);
+            showNotification(Ошибка: ${error.message}, 'error');
         } finally {
             // Восстанавливаем кнопку
             btnText.style.display = 'inline-block';
@@ -201,4 +170,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Пример ссылки для тестирования
+    longUrlInput.value = 'https://example.com/очень-длинная-ссылка-для-примера';
 });
