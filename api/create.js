@@ -1,11 +1,11 @@
-// api/create.js
+// api/create.js (исправленная версия)
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Вспомогательная функция для генерации нового кода при конфликте
+// Вспомогательная функция для генерации нового кода
 function generateShortCode(length = 6) {
     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
@@ -21,28 +21,29 @@ export default async function handler(req, res) {
     }
 
     let { shortCode, originalUrl } = req.body;
+    console.log('Начало обработки запроса. Код:', shortCode, 'URL:', originalUrl);
 
     try {
-        // 1. ПРОВЕРКА: Есть ли уже такая оригинальная ссылка в БД?
+        // 1. ПРОВЕРКА: Есть ли уже такая оригинальная ссылка?
+        console.log('Проверяем, существует ли уже URL...');
         const { data: existingLink, error: searchError } = await supabase
             .from('short_links')
-            .select('short_code, click_count')
+            .select('short_code')
             .eq('original_url', originalUrl)
-            .maybeSingle(); // Важно: не вызывает ошибку, если записи нет
+            .maybeSingle();
 
         if (searchError) {
-            console.error('Ошибка при поиске дубликата:', searchError);
+            console.error('Ошибка при поиске дубликата:', JSON.stringify(searchError));
             throw new Error('Ошибка при проверке базы данных');
         }
 
         // 2. Если ссылка уже существует — возвращаем её код
         if (existingLink) {
-            console.log(`URL уже существует, код: ${existingLink.short_code}`);
+            console.log('URL уже существует, его код:', existingLink.short_code);
             return res.status(200).json({
                 success: true,
                 shortCode: existingLink.short_code,
-                existed: true,
-                clickCount: existingLink.click_count || 0
+                existed: true
             });
         }
 
@@ -51,29 +52,33 @@ export default async function handler(req, res) {
         let attempts = 0;
         const maxAttempts = 3;
 
+        console.log('URL новый. Пытаемся сохранить...');
         while (!saved && attempts < maxAttempts) {
+            // ВСТАВКА БЕЗ поля created_at
             const { error: insertError } = await supabase
                 .from('short_links')
                 .insert([{
                     short_code: shortCode,
                     original_url: originalUrl,
-                    click_count: 0,
-                    created_at: new Date().toISOString()
+                    click_count: 0 // Убедитесь, что этот столбец есть в таблице!
                 }]);
 
+            // 4. АНАЛИЗ ОШИБКИ (самое важное!)
             if (insertError) {
-                // Код ошибки PostgreSQL для нарушения уникальности
+                // Код ошибки PostgreSQL для нарушения уникальности (код уже занят)
                 if (insertError.code === '23505') {
+                    console.log(`Код "${shortCode}" уже занят. Генерируем новый...`);
                     attempts++;
-                    shortCode = generateShortCode(); // Генерируем новый код для повторной попытки
-                    console.log(`Код занят, пробуем новый: ${shortCode}`);
+                    shortCode = generateShortCode();
                 } else {
-                    // Любая другая ошибка БД
-                    console.error('Ошибка вставки в БД:', insertError);
-                    throw new Error('Не удалось сохранить ссылку');
+                    // ЛЮБАЯ ДРУГАЯ ОШИБКА БД (например, нет столбца, синтаксис)
+                    console.error('КРИТИЧЕСКАЯ Ошибка вставки в БД:', JSON.stringify(insertError, null, 2));
+                    // Пробрасываем ошибку дальше с ДЕТАЛЯМИ из Supabase
+                    throw new Error(`Ошибка базы данных: ${insertError.message || 'Неизвестная ошибка'}`);
                 }
             } else {
                 saved = true;
+                console.log('Ссылка успешно сохранена с кодом:', shortCode);
             }
         }
 
@@ -81,16 +86,20 @@ export default async function handler(req, res) {
             throw new Error('Не удалось создать уникальную короткую ссылку после нескольких попыток');
         }
 
-        // 4. Успех!
+        // 5. Успех!
         res.status(200).json({
             success: true,
             shortCode: shortCode,
-            existed: false,
-            clickCount: 0
+            existed: false
         });
 
     } catch (error) {
-        console.error('Общая ошибка в api/create:', error);
-        res.status(500).json({ error: error.message || 'Внутренняя ошибка сервера' });
+        // 6. Обработка всех пойманных ошибок
+        console.error('Общая ошибка в api/create:', error.message);
+        // Возвращаем фронтенду понятное сообщение
+        res.status(500).json({ 
+            error: 'Не удалось сохранить ссылку',
+            details: error.message // Фронтенд сможет это показать
+        });
     }
 }
