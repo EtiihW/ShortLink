@@ -143,7 +143,6 @@ const result = await response.json();
     longUrlInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') shortenBtn.click();
     });
-
-    longUrlInput.value = '';
 });
+
 
