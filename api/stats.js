@@ -1,4 +1,4 @@
-// api/stats.js
+
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -7,12 +7,10 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
     try {
-        // 1. Получаем общее количество ссылок в БД
         const { count: totalLinks, error: countError } = await supabase
             .from('short_links')
             .select('*', { count: 'exact', head: true });
 
-        // 2. Получаем все записи, чтобы просуммировать клики
         const { data: allLinks, error: linksError } = await supabase
             .from('short_links')
             .select('click_count');
@@ -24,10 +22,8 @@ export default async function handler(req, res) {
 
         if (countError || linksError) {
             console.error('Ошибки при получении статистики:', { countError, linksError });
-            // Возвращаем нули, но не падаем
         }
 
-        // 3. Возвращаем статистику
         res.status(200).json({
             totalLinks: totalLinks || 0,
             totalClicks: totalClicks
