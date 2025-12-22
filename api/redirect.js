@@ -1,4 +1,4 @@
-// api/redirect.js
+
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -9,7 +9,6 @@ export default async function handler(req, res) {
     const { shortCode } = req.query;
 
     try {
-        // 1. Находим ссылку по короткому коду
         const { data: link, error: findError } = await supabase
             .from('short_links')
             .select('original_url, click_count')
@@ -20,7 +19,6 @@ export default async function handler(req, res) {
             return res.status(404).json({ error: 'Ссылка не найдена' });
         }
 
-        // 2. АТОМАРНО увеличиваем счётчик переходов
         const { error: updateError } = await supabase
             .from('short_links')
             .update({ click_count: (link.click_count || 0) + 1 })
@@ -28,10 +26,8 @@ export default async function handler(req, res) {
 
         if (updateError) {
             console.error('Не удалось обновить счётчик кликов:', updateError);
-            // Не прерываем редирект, просто логируем
         }
 
-        // 3. Выполняем редирект
         res.redirect(301, link.original_url);
 
     } catch (error) {
@@ -39,3 +35,4 @@ export default async function handler(req, res) {
         res.status(500).json({ error: 'Внутренняя ошибка сервера' });
     }
 }
+
